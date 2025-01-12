@@ -1,9 +1,42 @@
 
 const documentModel = require('../../models/Items/Documents');
 
+function groupBy(array, key) {
+    const result = {};
+    for (const item of array) {
+        // const part = participation.map((rep) => rep.partner)
+
+        if (!item.partner[key]) {
+            return console.log("no data");
+        }
+        const groupKey = item.partner[key];
+
+        if (!result[groupKey]) {
+            result[groupKey] = 0;
+        }
+
+        result[groupKey]++;
+    }
+    return result;
+}
+
 module.exports = {
 
-    getAll: function (req, res, next) {
+    getAll: function (res, next) {
+        documentModel.find({}).sort({ createdAt: -1 }).exec(function (err, result) {
+            if (err) {
+                next(err);
+            } else {
+                // res.json({ status: "success", message: "List of the documents", data: result });
+                const info = groupBy(result, "type")
+
+                res.json({ status: "success", message: "List of the documents", data: info });
+                console.log(result.length);
+            }
+        });
+    },
+
+    getData: function () {
         documentModel.find({}).sort({ createdAt: -1 }).exec(function (err, result) {
             if (err) {
                 next(err);
@@ -50,6 +83,7 @@ module.exports = {
     },
 
     CreateMany: function (req, res, next) {
+        console.log(req.length);
         documentModel.insertMany(req.body, function (err, result) {
             if (err)
                 res.status(400).send({ status: "error", message: err })
