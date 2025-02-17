@@ -3,33 +3,37 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 module.exports = {
-	create: function (req, res, next) {
-
-		userModel.create(req.body, function (err, result) {
-			if (err)
-				next(err);
-			else
-				res.json({ status: "success", message: "User added successfully!!!", data: null });
-
-		});
+	create: async function (req, res, next) {
+		try {
+			await userModel.create(req.body);
+			res.json({ status: "success", message: "User added successfully!!!", data: null });
+		} catch (error) {
+			next(error)
+		}
 	},
 
-	authenticate: function (req, res, next) {
-		userModel.findOne({ email: req.body.email }, function (err, userInfo) {
-			if (err) {
-				next(err);
+	authenticate: async function (req, res, next) {
+		try {
+			const userInfo = await userModel.findOne({ email: req.body.email });
+	
+			if (userInfo && bcrypt.compareSync(req.body.password, userInfo.password)) {
+				const token = jwt.sign({ _id: userInfo._id }, process.env.TOKEN_SECRET);
+				res.status(200).send({ 
+					status: "success", 
+					message: "User found!!!", 
+					data: { user: userInfo, token: token } 
+				});
 			} else {
-				if (userInfo != null && bcrypt.compareSync(req.body.password, userInfo.password)) {
-
-					const token = jwt.sign({ _id: userInfo._id }, process.env.TOKEN_SECRET)
-
-					res.status(200).send({ status: "success", message: "user found!!!", data: { user: userInfo, token: token } });
-
-				} else {
-					res.status(400).send({ status: "error", message: "Invalid email/password!!!", data: null })
-				}
+				res.status(400).send({ 
+					status: "error", 
+					message: "Invalid email/password!!!", 
+					data: null 
+				});
 			}
-		});
+		} catch (err) {
+			next(err);
+		}
 	},
+	
 
 }					

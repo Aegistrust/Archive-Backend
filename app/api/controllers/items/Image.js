@@ -1,106 +1,89 @@
-
 const imageModel = require('../../models/Items/Images');
 
 module.exports = {
 
-    getAll: function (req, res, next) {
-        imageModel.find({}).sort({ createdAt: -1 }).exec(function (err, result) {
-            if (err) {
-                next(err);
-            } else {
-                res.json({ status: "success", message: "List of the Images", data: result });
-            }
-        });
-    },
-
-    searchByKeyWord: function (req, res, next) {
-        const searchFields = ['title', 'author', 'type', 'description', 'provenance'];
-
-        const query = {
-            $or: searchFields.map(field => ({ [field]: { $regex: req.params.keyWord, $options: 'i' } })),
-        };
-
-        imageModel.find(query).exec(function (err, data) {
-            if (err) {
-                res.json({ status: "Faild", message: "No data found", data: err }).status(400);
-            } else {
-                res.json({ status: "success", message: "List of the Images", data: data });
-            }
-        });
-    },
-
-    getOne: function (req, res, next) {
-        imageModel.findById(req.params.id, function (err, imageInfo) {
-            if (!imageInfo)
-                res.json({ status: "Faild", message: "No data found", data: err }).status(400);
-            else {
-                res.json({ status: "success", message: " image retrieved successfully!!!", data: imageInfo })
-            }
-        });
-    },
-
-    create: function (req, res, next) {
-        imageModel.create(req.body, function (err, result) {
-            if (err)
-                res.status(400).send({ status: "error", message: err })
-            else
-                res.status(200).send({ status: "success", message: "Document added successfully!!!", data: result })
-
-        });
-    },
-
-    CreateMany: function (req, res, next) {
-        imageModel.insertMany(req.body, function (err, result) {
-            if (err)
-                res.status(400).send({ status: "error", message: err })
-            else {
-                console.log("goooood");
-                res.status(200).send({ status: "success", message: "Document added successfully!!!", data: result })
-            }
-        });
-    },
-
-    updateById: function (req, res, next) {
-        imageModel.findById(req.params.id, function (err, imageInfo) {
-            if (!imageInfo)
-                res.json({ status: "Faild", message: "No data found", data: err }).status(400);
-            else {
-                imageModel.findByIdAndUpdate(imageInfo._id, (req.body), { new: true }, function (err, Info) {
-                    if (err)
-                        console.log(err);
-                    else
-                        res.json({ status: "success", message: " deleted successfully!!!", Images: { Info } })
-                })
-            }
-        });
-    },
-
-    deleteById: function (req, res, next) {
-        imageModel.findById(req.params.id, function (err, imageInfo) {
-            if (!imageInfo)
-                res.json({ status: "Faild", message: "No data found", data: err }).status(400);
-            else {
-                imageModel.deleteOne((imageInfo), function (err, Info) {
-                    if (err)
-                        console.log(err);
-                    else
-                        res.json({ status: "success", message: " deleted successfully!!!", Images: { Info } })
-                })
-            }
-        });
-    },
-
-    deleteAll: function (req, res, next) {
+    getAll: async function (req, res, next) {
         try {
-            imageModel.deleteMany({}).exec(function (err, result) {
-                if (err) {
-                    console.log(err);
-                } else
-                    res.status(200).send({ status: "success", message: "Document deleted successfully" })
-            })
-        } catch (error) {
-
+            const result = await imageModel.find({}).sort({ createdAt: -1 });
+            res.json({ status: "success", message: "List of the Images", data: result });
+        } catch (err) {
+            next(err);
         }
     },
 
-}					
+    searchByKeyWord: async function (req, res, next) {
+        try {
+            const searchFields = ['title', 'author', 'type', 'description', 'provenance'];
+            const query = {
+                $or: searchFields.map(field => ({ [field]: { $regex: req.params.keyWord, $options: 'i' } })),
+            };
+            const data = await imageModel.find(query);
+            res.json({ status: "success", message: "List of the Images", data });
+        } catch (err) {
+            res.status(400).json({ status: "Failed", message: "No data found", data: err });
+        }
+    },
+
+    getOne: async function (req, res, next) {
+        try {
+            const imageInfo = await imageModel.findById(req.params.id);
+            if (!imageInfo) {
+                return res.status(400).json({ status: "Failed", message: "No data found" });
+            }
+            res.json({ status: "success", message: "Image retrieved successfully!", data: imageInfo });
+        } catch (err) {
+            next(err);
+        }
+    },
+
+    create: async function (req, res, next) {
+        try {
+            const result = await imageModel.create(req.body);
+            res.status(200).json({ status: "success", message: "Image added successfully!", data: result });
+        } catch (err) {
+            res.status(400).json({ status: "error", message: err.message });
+        }
+    },
+
+    CreateMany: async function (req, res, next) {
+        try {
+            const result = await imageModel.insertMany(req.body);
+            res.status(200).json({ status: "success", message: "Images added successfully!", data: result });
+        } catch (err) {
+            res.status(400).json({ status: "error", message: err.message });
+        }
+    },
+
+    updateById: async function (req, res, next) {
+        try {
+            const updatedImage = await imageModel.findByIdAndUpdate(req.params.id, req.body, { new: true });
+            if (!updatedImage) {
+                return res.status(400).json({ status: "Failed", message: "No data found" });
+            }
+            res.json({ status: "success", message: "Image updated successfully!", data: updatedImage });
+        } catch (err) {
+            next(err);
+        }
+    },
+
+    deleteById: async function (req, res, next) {
+        try {
+            const deletedImage = await imageModel.findByIdAndDelete(req.params.id);
+            if (!deletedImage) {
+                return res.status(400).json({ status: "Failed", message: "No data found" });
+            }
+            res.json({ status: "success", message: "Image deleted successfully!" });
+        } catch (err) {
+            next(err);
+        }
+    },
+
+    deleteAll: async function (req, res, next) {
+        try {
+            await imageModel.deleteMany({});
+            res.status(200).json({ status: "success", message: "All images deleted successfully!" });
+        } catch (err) {
+            next(err);
+        }
+    }
+};

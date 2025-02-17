@@ -7,7 +7,7 @@ router.get('/', verifyTioken, videoController.getAll);
 router.get('/:id', verifyTioken, videoController.getOne);
 router.get('/searchByKeyWord/:keyWord', verifyTioken, videoController.searchByKeyWord);
 router.post('/', verifyTioken, videoController.create);
-router.post('/upload', verifyTioken, videoController.CreateMany);
+router.post('/upload', verifyTioken, videoController.createMany);
 router.put('/:id', verifyTioken, videoController.updateById);
 router.delete('/:id', verifyTioken, videoController.deleteById);
 router.delete('/', verifyTioken, videoController.deleteAll);
