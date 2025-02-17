@@ -2,11 +2,11 @@
   "name": "logbook",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "./functions/app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js",
-    "build": "webpack --mode production"
+    "start": "node ./functions/app.js",
+    "build": "netlify deploy --prod"
   },
   "keywords": [],
   "author": "",
@@ -20,7 +20,10 @@
     "express": "^4.17.1",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^3.6.10",
-    "mongoose": "^8.10.0"
+    "mongoose": "^8.10.0",
+    "netlify-cli": "^18.1.0",
+    "netlify-lambda": "^2.0.16",
+    "serverless-http": "^3.2.0"
   },
   "devDependencies": {
     "@babel/core": "^7.26.9",
